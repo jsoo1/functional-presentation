@@ -1,0 +1,62 @@
+#+TITLE: Wherefore Functional?
+
+* About Me:
+   - John Soo
+   - American Airlines Team
+   - Your local functional programming enthusiast
+
+* How many times have you done the following this week? month? lifetime?
+#+begin_src java
+  public class Operator <Vehicle> {
+
+  }
+#+end_src
+
+* Why is software harder to produce when there is more of it?
+
+** Two things I want to focus on
+
+   1. Communication
+
+   2. Correctness
+
+* Communication
+
+** Code is a channel that we use to tell other developers what the computer ought to do.
+
+   - More code = more to understand
+   - More relevant code in more places = more to store in the reader's head
+
+** Good code communicates clearly
+
+** Some code volume is incidental to the problems we tackle, some of it is accidental
+
+   - Avoid: miscommunication, ommission of relevant detail, inclusion of irrelevant detail
+
+* Correctness
+
+** The code we write ought to do what is intended
+
+** Nor should it cause runtime, compile time, or logic errors
+
+   - More states interacting with other states = more potential for errors
+   - More existing features = more interaction with any new feature
+
+* Are you with me?
+
+* Enemies of correctness and communication
+
+  - State
+  - Verbosity
+  - Leaky abstractions
+
+** A thought experiment
+
+   - What if mutation was not allowed?
+   - What if code could be passed around like any other value?
+
+** The goal: reduce verbosity, minimize state
+
+* Some code
+
+#+begin_src js :exports code
