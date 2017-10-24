@@ -5,10 +5,56 @@
    - American Airlines Team
    - Your local functional programming enthusiast
 
-* How many times have you done the following this week? month? lifetime?
-#+begin_src java
-  public class Operator <Vehicle> {
+* Pain Point: Unit tests
+  - there to find your mistakes that a compiler could tell about
+  - null checks, side effects, untested paths, mocking
 
+#+begin_src java
+  public class MyHandlerTest {
+     private MyHandler handler;
+
+     @Test
+     public void doesNotAlwaysFail() {
+        assertNotNull(handler.handle(new HttpServletRequest));
+     }
+  }
+#+end_src
+
+* Pain Point: Object Orientation is brittle to change
+  - Need a complete understanding of your code organization to change a small piece
+  - Unnecessary cognitive load
+
+#+begin_src java
+    public class AccountManager {
+
+       private AccountDelegate delegate;
+       private Account account;
+
+       ...
+
+       public void signIn(HttpServletRequest request) {
+           delegate.signIn(request, account);
+           return account;
+       }
+    }
+#+end_src
+
+* Pain Point: Object Oriented code is verbose
+  - How many times have you done the following this week? month? lifetime?
+  - Creating a whole new class or object simply to pass behavior around
+    
+#+begin_src java
+  public class MyController {
+
+     private MyHandler handler;
+
+     public MyController(MyHandler handler) {
+       this.handler = handler;
+     }
+
+     public ResponseObject processMyRoute(model, HttpServletRequest request) {
+       return handler.handle(model, request);
+     }
   }
 #+end_src
 
@@ -16,33 +62,23 @@
 
 ** Two things I want to focus on
 
-   1. Communication
+   1. Communication:
+      - Here's some choices of words instead of communication: Readability, Expressiveness, Intent, Versatility
+      - Code expresses the intent of the programmer in more human readable ways
 
-   2. Correctness
+   2. Correctness:
+      - The whole purpose of testing in general is to verify that your code does what you want and does not break
+        + The problem with that is that they horribly ineffective at it
+          * Tests require manually writing code that verifies all paths and all inputs do what you expect
+            1) (but this is rarely achieved)
+            2) This includes paths and inputs that the programmer cannot foresee (like exceptions, invalid input, timeouts, etc)
 
-* Communication
+* Communication (Remove?)
 
 ** Code is a channel that we use to tell other developers what the computer ought to do.
 
    - More code = more to understand
    - More relevant code in more places = more to store in the reader's head
-
-** Good code communicates clearly
-
-** Some code volume is incidental to the problems we tackle, some of it is accidental
-
-   - Avoid: miscommunication, ommission of relevant detail, inclusion of irrelevant detail
-
-* Correctness
-
-** The code we write ought to do what is intended
-
-** Nor should it cause runtime, compile time, or logic errors
-
-   - More states interacting with other states = more potential for errors
-   - More existing features = more interaction with any new feature
-
-* Are you with me?
 
 * Enemies of correctness and communication
 
@@ -50,13 +86,105 @@
   - Verbosity
   - Leaky abstractions
 
-** A thought experiment
+** The goal: reduce verbosity, minimize state
 
+* What if I told you that you could have all this for free? (rewrite subsections)
+  
    - What if mutation was not allowed?
    - What if code could be passed around like any other value?
 
-** The goal: reduce verbosity, minimize state
+** I submit that functional programming solves these problems better than imperative and object oriented programming
 
-* Some code
+* So what is functional programming?
 
-#+begin_src js :exports code
+** Core principles:
+
+   - Evaluation of expressions instead of executing statements
+   - Preferring pure functions - functions that - given the same input - will always return the same output
+   - Emphasizing immutability and returning new - but updated - values over mutating shared state
+
+* Many flavors
+  "A" spectrum:
+  
+  Purity, Strictness                                      Impurity
+  <-------------------------------------------------------------->
+  Haskell     OCaml,F#                             JavaScript,LISP
+
+  - You likely can/do functional programming everyday
+
+* FP solutions: Declarative (as opposed to imperative)
+  - Instead of providing a set of steps to achieve a goal (imperative), you define and (often) let the computer implement the solution
+  - No sense of time or order
+
+#+begin_src js
+  // Like a recipe
+  function imperativeFactorial(n) {
+     var result = 1;
+     if (n <= 1) {
+       return result;
+     }
+
+     while (n >= 1) {
+       result *= n;
+       --n;
+     }
+
+     return result;
+   }
+
+  // Everything is an expression!
+  function declarativeFactorial(n) {
+    if (n >= 1) {
+      return 1;
+    } else {
+      return n * declarativeFactorial(n - 1);
+    }
+  }
+#+end_src
+
+* Example: Type systems for communication and correctness
+  - With functional type systems, easily communicate (all) of the states you need
+  - I'm not even going to attempt to write this in anything else, because it would take 100 lines
+
+#+begin_src haskell
+  newType Level = Int
+  data Message = Set Level | Reset
+
+  setLevel :: Message -> Level -> Level
+  setLevel message level = case message of
+    Reset        -> Neutral
+    Set newLevel -> case level of
+      0 -> 1
+      _ -> newLevel + 30
+
+  main = do
+    firstLevel <- someAction
+    message    <- userAction
+
+    return $ setLevel message firstLevel
+#+end_src
+
+* Example Correctness: Composing side effects
+  - Making a small function is actually small and specialized in the absence of state
+  - Maybe edit this out for final presentation
+
+#+begin_src haskell
+    getUser :: String -> IO (Maybe String)
+    getUser userId = do
+       response <- get "http://www.my-app.com/users/" ++ userId
+       case response ^. responseStatus . statusCode of
+          200 -> return (Just response ^. responseBody)
+           _  -> return Nothing
+
+    main :: IO ()
+    main =
+       getLine >>= (\id ->
+           getUser >>= (\user ->
+              return . putStrLn <$> user
+           )
+       )
+#+end_src
+
+* If you are interested! (refine these)
+  - Correctness by construction.
+  - Commmon mathematical abstractions
