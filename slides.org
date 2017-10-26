@@ -1,99 +1,56 @@
-#+TITLE: Wherefore Functional?
+#+REVEAL_ROOT: http://cdn.jsdelivr.net/reveal.js/3.0.0/
+#+TITLE: Functional Programming: Why's and What's
 
 * About Me:
-   - John Soo
-   - American Airlines Team
-   - Your local functional programming enthusiast
 
-* Pain Point: Unit tests
-  - there to find your mistakes that a compiler could tell about
-  - null checks, side effects, untested paths, mocking
-
-#+begin_src java
-  public class MyHandlerTest {
-     private MyHandler handler;
-
-     @Test
-     public void doesNotAlwaysFail() {
-        assertNotNull(handler.handle(new HttpServletRequest));
-     }
-  }
-#+end_src
-
-* Pain Point: Object Orientation is brittle to change
-  - Need a complete understanding of your code organization to change a small piece
-  - Unnecessary cognitive load
-
-#+begin_src java
-    public class AccountManager {
-
-       private AccountDelegate delegate;
-       private Account account;
-
-       ...
-
-       public void signIn(HttpServletRequest request) {
-           delegate.signIn(request, account);
-           return account;
-       }
-    }
-#+end_src
-
-* Pain Point: Object Oriented code is verbose
-  - How many times have you done the following this week? month? lifetime?
-  - Creating a whole new class or object simply to pass behavior around
-    
-#+begin_src java
-  public class MyController {
-
-     private MyHandler handler;
-
-     public MyController(MyHandler handler) {
-       this.handler = handler;
-     }
-
-     public ResponseObject processMyRoute(model, HttpServletRequest request) {
-       return handler.handle(model, request);
-     }
-  }
-#+end_src
+  - John Soo
+  - American Airlines Team
+  - Your local functional programming enthusiast
 
 * Why is software harder to produce when there is more of it?
 
 ** Two things I want to focus on
 
    1. Communication:
-      - Here's some choices of words instead of communication: Readability, Expressiveness, Intent, Versatility
-      - Code expresses the intent of the programmer in more human readable ways
+      - Code should express the intent of the programmer to other humans
+        + In other words: Readability, Expressiveness, Intent
 
    2. Correctness:
-      - The whole purpose of testing in general is to verify that your code does what you want and does not break
-        + The problem with that is that they horribly ineffective at it
-          * Tests require manually writing code that verifies all paths and all inputs do what you expect
-            1) (but this is rarely achieved)
-            2) This includes paths and inputs that the programmer cannot foresee (like exceptions, invalid input, timeouts, etc)
+      - Code does what you want and does not break
 
-* Communication (Remove?)
+* Correctness via testing
 
-** Code is a channel that we use to tell other developers what the computer ought to do.
+** The whole purpose of testing is to verify correctness
+
+** Problem: it is horribly ineffective
+
+** As programs grow, their function space becomes enormous
+
+** Tests require manually writing code that verifies all paths and all inputs
+
+   + This is rarely achieved
+   + This includes paths and inputs that the programmer cannot foresee
+     - (like exceptions, invalid input, timeouts, etc)
+     - Even with branch coverage, input coverage is not guaranteed
+
+* Communication is impeded by indirection
+
+** Code is a channel we use to tell other developers what the computer ought to do.
 
    - More code = more to understand
-   - More relevant code in more places = more to store in the reader's head
+   - More relevant code in more places = more to store in the reader's head - Reword
 
 * Enemies of correctness and communication
 
-  - State
+  - Unpredictable state mutation
   - Verbosity
   - Leaky abstractions
 
-** The goal: reduce verbosity, minimize state
+** The goal: reduce verbosity, control state, provide well defined abstractions
 
-* What if I told you that you could have all this for free? (rewrite subsections)
-  
-   - What if mutation was not allowed?
-   - What if code could be passed around like any other value?
+* What if I told you that you could have all this for free?
 
-** I submit that functional programming solves these problems better than imperative and object oriented programming
+** You guessed it, functional programming!
 
 * So what is functional programming?
 
@@ -102,89 +59,178 @@
    - Evaluation of expressions instead of executing statements
    - Preferring pure functions - functions that - given the same input - will always return the same output
    - Emphasizing immutability and returning new - but updated - values over mutating shared state
+   - Of course, first class functions (functions are values)
+
+     Most functional programs boil down to this:
+     f(g(h(x)))
 
 * Many flavors
+
   "A" spectrum:
-  
-  Purity, Strictness                                      Impurity
+
+  Purity, Strictness                                 Impurity, Dynamic
   <-------------------------------------------------------------->
-  Haskell     OCaml,F#                             JavaScript,LISP
+  Haskell     OCaml,F#       Scala        Clojure      JavaScript
 
-  - You likely can/do functional programming everyday
+  - You likely can, if not already do, functional programming everyday
 
-* FP solutions: Declarative (as opposed to imperative)
+* Declarative and definitional (as opposed to imperative)
+
   - Instead of providing a set of steps to achieve a goal (imperative), you define and (often) let the computer implement the solution
   - No sense of time or order
 
-#+begin_src js
-  // Like a recipe
-  function imperativeFactorial(n) {
-     var result = 1;
-     if (n <= 1) {
-       return result;
-     }
+    #+begin_src js
+      // Like a recipe
+      function imperativeFactorial(n) {
+          var result = 1;
+          if (n <= 1) {
+              return result;
+          }
 
-     while (n >= 1) {
-       result *= n;
-       --n;
-     }
+          while (n >= 1) {
+              result *= n;
+              --n;
+          }
 
-     return result;
-   }
+          return result;
+      }
 
-  // Everything is an expression!
-  function declarativeFactorial(n) {
-    if (n >= 1) {
-      return 1;
-    } else {
-      return n * declarativeFactorial(n - 1);
-    }
-  }
-#+end_src
+      // Everything is an expression!
+      function declarativeFactorial(n) {
+          if (n >= 1) {
+              return 1;
+          } else {
+              return n * declarativeFactorial(n - 1);
+          }
+      }
+    #+end_src
 
-* Example: Type systems for communication and correctness
+* There is a lot to functional programming    
+  
+** So much more than I can cover, that I urge you to join your local meetup
+   (7-9 every monday! I hear there is a good one right here!)   
+   
+* Pain Point: Refactoring Code 
+  
+** Refactoring takes a lot of thought and you can break things!
+
+  - need a complete understanding of ALL your code to change a small piece
+    + leads to unnecessary cognitive load
+  - refactoring can lead to breakage
+    + sometimes this means that refactoring never happens
+    + this leads to the WTF moments we experience frequently
+
+    #+begin_src java
+      // If I want to refactor the AccountManager I have to understand what the delegate and repository do!
+      // And no, descriptive names do not help!
+      public class AccountManager {
+
+          private AccountDelegate delegate;
+          private AccountRepository repository;
+
+          ...
+
+          public AccountStatus signIn(HttpServletRequest request) {
+              Account account = repository.retrieveAccount(request.getAttribute("accountId"));
+
+              delegate.signIn(request, account);
+              return account.getStatus();
+          }
+      }
+    #+end_src
+
+* Example: Strong types and immutability
+
   - With functional type systems, easily communicate (all) of the states you need
+  - Immutability means there will not be a nullary, void function
   - I'm not even going to attempt to write this in anything else, because it would take 100 lines
 
-#+begin_src haskell
-  newType Level = Int
-  data Message = Set Level | Reset
+    #+begin_src haskell
+      newtype Level = Int
 
-  setLevel :: Message -> Level -> Level
-  setLevel message level = case message of
-    Reset        -> Neutral
-    Set newLevel -> case level of
-      0 -> 1
-      _ -> newLevel + 30
 
-  main = do
-    firstLevel <- someAction
-    message    <- userAction
+      data Message = Set Level | Reset
 
-    return $ setLevel message firstLevel
+
+      -- Writing a new message will result in compiler errors or warnings
+      setLevel :: Message -> Level -> Level
+      setLevel message level = case message of
+        Reset        -> 1
+
+        Set newLevel -> case level of
+          0 -> 1
+
+          _ -> newLevel + 30
+    #+end_src
+
+* Pain Point: Procedural and OO code is verbose 
+  
+** Each line of code is a liability!
+
+  - How many times have you done the following this week? month? lifetime?
+  - Creating a whole new class or object simply to pass behavior around
+
+    #+begin_src java
+      public class MyController {
+
+          // I have to create both of these classes just to use the functions isValid and handle!
+          // Don't even try to tell me that anonymous inner classes help!
+          private MyHandler handler;
+          private MyValidator validator;
+
+          public MyController(MyHandler handler) {
+              this.handler = handler;
+          }
+
+          public ResponseObject processMyRoute(HttpServletRequest request) {
+              if (validator.isValid(request.getAttribute("myForm"))) {
+                  return handler.handle(model, request);
+              } else {
+                  return null;
+              }
+          }
+      }
+    #+end_src
+
+* Functional Approach: First class functions, well founded abstraction and syntax sugar
+
+  - syntax can be used to replace particularly verbose code
+  - well founded abstractions (like the "Promise" here) mean using an interface does not require reading a definition
+  - first class functions allow for behavior needed at call site to be defined at call site
+    
+#+begin_src js
+    app.use('/my-route', ({ body: { myForm } }, res) =>
+        validate(myForm)
+           .then(_ => res.json({ myData: "excellent form, sir!" }))
+           .catch(_ => res.sendStatus(400)))
 #+end_src
 
+
 * Example Correctness: Composing side effects
+
   - Making a small function is actually small and specialized in the absence of state
   - Maybe edit this out for final presentation
 
-#+begin_src haskell
-    getUser :: String -> IO (Maybe String)
-    getUser userId = do
-       response <- get "http://www.my-app.com/users/" ++ userId
-       case response ^. responseStatus . statusCode of
-          200 -> return (Just response ^. responseBody)
-           _  -> return Nothing
+    #+begin_src haskell
+      getUser :: String -> IO (Maybe String)
+      getUser userId = do
+         response <- get "http://www.my-app.com/users/" ++ userId
 
-    main :: IO ()
-    main =
-       getLine >>= (\id ->
-           getUser >>= (\user ->
-              return . putStrLn <$> user
-           )
-       )
-#+end_src
+         case response ^. responseStatus . statusCode of
+            200 -> return (Just response ^. responseBody)
+
+             _  -> return Nothing
+
+
+      main :: IO ()
+      main = do
+         id <- getLine
+         user <- getUser id
+
+         return . putStrLn <$> user
+    #+end_src
 
 * If you are interested! (refine these)
+
   - Correctness by construction.
   - Commmon mathematical abstractions
