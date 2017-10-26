@@ -310,7 +310,7 @@
 * If you are interested!
 
   - [[https://www.gitbook.com/book/drboolean/mostly-adequate-guide/details][Professor Frisbys Mostly Adequate Guide to Functional Programming]]
-  - [[haskellbook.com][Haskell from First Principles]]
+  - [[http://haskellbook.com/][Haskell Programming from First Principles]]
   - [[https://www.youtube.com/watch?v=E8I19uA-wGY][Functional Design Patterns]]
 
 ** Come to the Orange Combinator!
