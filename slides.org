@@ -1,4 +1,3 @@
-#+REVEAL_ROOT: http://cdn.jsdelivr.net/reveal.js/3.0.0/
 #+TITLE: Functional Programming: Why's and What's
 
 * About Me:
@@ -38,7 +37,7 @@
 ** Code is a channel we use to tell other developers what the computer ought to do.
 
    - More code = more to understand
-   - More relevant code in more places = more to store in the reader's head - Reword
+   - More relevant code in more places = more to store in the reader's head
 
 * Enemies of correctness and communication
 
@@ -61,18 +60,19 @@
    - Emphasizing immutability and returning new - but updated - values over mutating shared state
    - Of course, first class functions (functions are values)
 
-     Most functional programs boil down to this:
+     Most functional programs boil down to:
      f(g(h(x)))
 
 * Many flavors
 
   "A" spectrum:
 
+  #+begin_example
   Purity, Strictness                                 Impurity, Dynamic
   <-------------------------------------------------------------->
   Haskell     OCaml,F#       Scala        Clojure      JavaScript
 
-  - You likely can, if not already do, functional programming everyday
+  - You likely can, if you don't already, do some functional programming everyday
 
 * Declarative and definitional (as opposed to imperative)
 
@@ -105,10 +105,53 @@
       }
     #+end_src
 
+* Immutability
+
+  - No name (variable) shall ever mean two different things
+  - Again, no sense of time or order
+
+#+begin_src haskell
+  x = 5
+
+  -- Compile error!
+  x = 6
+
+  -- Fresh list - no mutation!
+  lowerCaseAll [] = []
+  lowerCaseAll (char:chars) = toLower char : lowerCaseAll chars
+
+  -- No worries about the state of the important objects
+  -- We can pass around db's, accounts, anything
+  updateAccount database account newInfo = update database account newInfo
+#+end_src
+
+
+* First Class Functions
+
+  - functions can be things too!
+
+#+begin_src js
+  // Functions as arguments
+  [1, 2, 3, 4, 5]
+      .map(x => x + 1)
+      .filter(x => x < 5)
+      .reduce((x, y) => x + y, 0)
+
+  // Return a function from a function
+  const f = x => y => z => x + y * z
+
+  // No builder pattern necessary!
+  const updateAccount = database => account => newInfo => update(database, account, newInfo)
+#+end_src
+
 * There is a lot to functional programming    
   
-** So much more than I can cover, that I urge you to join your local meetup
-   (7-9 every monday! I hear there is a good one right here!)   
+** I urge you to join your local meetup
+   (7-9 every monday!)
+
+* But John!
+
+** How does this relate to correctness and communication?
    
 * Pain Point: Refactoring Code 
   
@@ -139,7 +182,7 @@
       }
     #+end_src
 
-* Example: Strong types and immutability
+* COMMENT Example: Strong types and immutability
 
   - With functional type systems, easily communicate (all) of the states you need
   - Immutability means there will not be a nullary, void function
@@ -192,17 +235,19 @@
       }
     #+end_src
 
-* Functional Approach: First class functions, well founded abstraction and syntax sugar
+* Functional Approach
+
+** First class functions, well founded abstraction and syntax sugar
 
   - syntax can be used to replace particularly verbose code
   - well founded abstractions (like the "Promise" here) mean using an interface does not require reading a definition
   - first class functions allow for behavior needed at call site to be defined at call site
     
 #+begin_src js
-    app.use('/my-route', ({ body: { myForm } }, res) =>
-        validate(myForm)
-           .then(_ => res.json({ myData: "excellent form, sir!" }))
-           .catch(_ => res.sendStatus(400)))
+  app.use('/my-route', ({ body: { myForm } }) =>
+      validate(myForm)
+         .map(_ => { status: "excellent form, sir!" })
+         .fold(response => response, { status: "poor form, sir!" }))
 #+end_src
 
 
