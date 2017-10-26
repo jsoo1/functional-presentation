@@ -1,9 +1,9 @@
-#+TITLE: Functional Programming: Why's and What's
+#+TITLE: Functional Programming: Whys and Whats
 
 * About Me:
 
   - John Soo
-  - American Airlines Team
+  - Developer, American Airlines Team
   - Your local functional programming enthusiast
 
 * Why is software harder to produce when there is more of it?
@@ -65,9 +65,8 @@
 
 * Many flavors
 
-  "A" spectrum:
+  A spectrum:
 
-  #+begin_example
   Purity, Strictness                                 Impurity, Dynamic
   <-------------------------------------------------------------->
   Haskell     OCaml,F#       Scala        Clojure      JavaScript
@@ -76,7 +75,8 @@
 
 * Declarative and definitional (as opposed to imperative)
 
-  - Instead of providing a set of steps to achieve a goal (imperative), you define and (often) let the computer implement the solution
+  - Instead of providing a set of steps to achieve a goal (imperative)
+    you define and (often) let the computer implement the solution
   - No sense of time or order
 
     #+begin_src js
@@ -146,7 +146,7 @@
 
 * There is a lot to functional programming    
   
-** I urge you to join your local meetup
+** I urge you to learn more at your local meetup
    (7-9 every monday!)
 
 * But John!
@@ -182,7 +182,7 @@
       }
     #+end_src
 
-* COMMENT Example: Strong types and immutability
+* Functional Approach: Strong types and immutability
 
   - With functional type systems, easily communicate (all) of the states you need
   - Immutability means there will not be a nullary, void function
@@ -240,42 +240,23 @@
 ** First class functions, well founded abstraction and syntax sugar
 
   - syntax can be used to replace particularly verbose code
-  - well founded abstractions (like the "Promise" here) mean using an interface does not require reading a definition
+  - well founded abstractions mean using an interface does not require reading a definition
   - first class functions allow for behavior needed at call site to be defined at call site
     
 #+begin_src js
-  app.use('/my-route', ({ body: { myForm } }) =>
+  const myRoute = ({ body: { myForm } }) =>
       validate(myForm)
-         .map(_ => { status: "excellent form, sir!" })
-         .fold(response => response, { status: "poor form, sir!" }))
+         .map(_ => { message: "excellent form, sir!" })
+         .fold(response => response, { message: "poor form, old chap" })
 #+end_src
 
 
-* Example Correctness: Composing side effects
+* If you are interested!
 
-  - Making a small function is actually small and specialized in the absence of state
-  - Maybe edit this out for final presentation
+  - Professor Frisby's Mostly Adequate Guide
+      to Functional Programming
+  - Haskell from First Principles
+  - Functional Programming through Lambda Calculus
 
-    #+begin_src haskell
-      getUser :: String -> IO (Maybe String)
-      getUser userId = do
-         response <- get "http://www.my-app.com/users/" ++ userId
-
-         case response ^. responseStatus . statusCode of
-            200 -> return (Just response ^. responseBody)
-
-             _  -> return Nothing
-
-
-      main :: IO ()
-      main = do
-         id <- getLine
-         user <- getUser id
-
-         return . putStrLn <$> user
-    #+end_src
-
-* If you are interested! (refine these)
-
-  - Correctness by construction.
-  - Commmon mathematical abstractions
+** Come to the Orange Combinator!
+    We would love to have you!
