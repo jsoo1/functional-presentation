@@ -11,33 +11,35 @@
 ** Two things I want to focus on
 
    1. Communication:
-      - Code should express the intent of the programmer to other humans
+      - Code's capacity to express the intent of the programmer to other humans
         + In other words: Readability, Expressiveness, Intent
 
    2. Correctness:
-      - Code does what you want and does not break
+      - Code's capacity to do what is specified and not break
 
-* Correctness via testing
+* Testing
 
-** The whole purpose of testing is to verify correctness
+** Purpose of testing is to verify correctness
 
 ** Problem: it is horribly ineffective
 
-** As programs grow, their function space becomes enormous
+** Correct software works for all inputs
 
-** Tests require manually writing code that verifies all paths and all inputs
+*** Number of inputs and states to test is enormous
+*** All those tests must be written manually!
 
-   + This is rarely achieved
-   + This includes paths and inputs that the programmer cannot foresee
-     - (like exceptions, invalid input, timeouts, etc)
-     - Even with branch coverage, input coverage is not guaranteed
+     - Rarely achieved
+     - This includes paths and inputs that the programmer cannot foresee
+       + (like exceptions, invalid input, timeouts, etc)
+       + Even with branch coverage, input coverage is not guaranteed
 
 * Communication is impeded by indirection
 
-** Code is a channel we use to tell other developers what the computer ought to do.
+** Code tells other developers what the computer ought to do.
 
    - More code = more to understand
    - More relevant code in more places = more to store in the reader's head
+   - Correctness is also reduced by poor communication
 
 * Enemies of correctness and communication
 
@@ -45,7 +47,13 @@
   - Verbosity
   - Leaky abstractions
 
-** The goal: reduce verbosity, control state, provide well defined abstractions
+** The goals:
+
+*** reduce verbosity
+
+*** control state
+
+*** provide well defined abstractions
 
 * What if I told you that you could have all this for free?
 
@@ -56,9 +64,9 @@
 ** Core principles:
 
    - Evaluation of expressions instead of executing statements
-   - Preferring pure functions - functions that - given the same input - will always return the same output
-   - Emphasizing immutability and returning new - but updated - values over mutating shared state
-   - Of course, first class functions (functions are values)
+   - Preferring pure functions - given the same input - will always return the same output
+   - Emphasizing immutability and over mutating state
+   - Of course, first class functions - functions are values
 
      Most functional programs boil down to:
      f(g(h(x)))
@@ -67,11 +75,10 @@
 
   A spectrum:
 
-  Purity, Strictness                                 Impurity, Dynamic
-  <-------------------------------------------------------------->
-  Haskell     OCaml,F#       Scala        Clojure      JavaScript
+  <------------------------------------------------>
+  Haskell       Scala       Clojure       JavaScript
 
-  - You likely can, if you don't already, do some functional programming everyday
+  - You likely can/do some functional programming everyday
 
 * Declarative and definitional (as opposed to imperative)
 
@@ -141,20 +148,21 @@
   const f = x => y => z => x + y * z
 
   // No builder pattern necessary!
-  const updateAccount = database => account => newInfo => update(database, account, newInfo)
+  const updateAccount = database => account => newInfo =>
+      update(database, account, newInfo)
 #+end_src
 
-* There is a lot to functional programming    
-  
+* There is a lot to functional programming
+
 ** I urge you to learn more at your local meetup
    (7-9 every monday!)
 
 * But John!
 
 ** How does this relate to correctness and communication?
-   
-* Pain Point: Refactoring Code 
-  
+
+* Pain Point: Refactoring Code
+
 ** Refactoring takes a lot of thought and you can break things!
 
   - need a complete understanding of ALL your code to change a small piece
@@ -164,7 +172,8 @@
     + this leads to the WTF moments we experience frequently
 
     #+begin_src java
-      // If I want to refactor the AccountManager I have to understand what the delegate and repository do!
+      // If I want to refactor the AccountManager I have to understand what the
+      // delegate and repository do!
       // And no, descriptive names do not help!
       public class AccountManager {
 
@@ -174,7 +183,8 @@
           ...
 
           public AccountStatus signIn(HttpServletRequest request) {
-              Account account = repository.retrieveAccount(request.getAttribute("accountId"));
+              String accountId = request.getAttribute("accountId");
+              Account account = repository.retrieveAccount(accountId);
 
               delegate.signIn(request, account);
               return account.getStatus();
@@ -186,28 +196,28 @@
 
   - With functional type systems, easily communicate (all) of the states you need
   - Immutability means there will not be a nullary, void function
-  - I'm not even going to attempt to write this in anything else, because it would take 100 lines
 
     #+begin_src haskell
-      newtype Level = Int
+        newtype Level = Int
 
 
-      data Message = Set Level | Reset
+        -- Creating a new kind of Message will result in
+        -- compiler errors or warnings
+        data Message = Set Level | Reset
 
 
-      -- Writing a new message will result in compiler errors or warnings
-      setLevel :: Message -> Level -> Level
-      setLevel message level = case message of
-        Reset        -> 1
+        setLevel :: Message -> Level -> Level
+        setLevel message level = case message of
+          Reset        -> 1
 
-        Set newLevel -> case level of
-          0 -> 1
+          Set newLevel -> case level of
+            0 -> 1
 
-          _ -> newLevel + 30
+            _ -> newLevel + 30
     #+end_src
 
-* Pain Point: Procedural and OO code is verbose 
-  
+* Pain Point: Procedural and OO code is verbose
+
 ** Each line of code is a liability!
 
   - How many times have you done the following this week? month? lifetime?
@@ -216,7 +226,8 @@
     #+begin_src java
       public class MyController {
 
-          // I have to create both of these classes just to use the functions isValid and handle!
+          // I have to create both of these classes just to
+          // use the functions `isValid` and `handle`!
           // Don't even try to tell me that anonymous inner classes help!
           private MyHandler handler;
           private MyValidator validator;
@@ -237,26 +248,70 @@
 
 * Functional Approach
 
-** First class functions, well founded abstraction and syntax sugar
+** First class functions
 
-  - syntax can be used to replace particularly verbose code
-  - well founded abstractions mean using an interface does not require reading a definition
-  - first class functions allow for behavior needed at call site to be defined at call site
-    
+** Well founded abstraction
+
+** Syntax sugar
+
+  - syntax replaces particularly verbose code
+  - interface does not require reading a definition
+  - behavior needed at call site is defined at call site
+
 #+begin_src js
   const myRoute = ({ body: { myForm } }) =>
       validate(myForm)
-         .map(_ => { message: "excellent form, sir!" })
-         .fold(response => response, { message: "poor form, old chap" })
+         .map(_ => "excellent form, sir!")
+         .fold(response => response, "poor form, old chap")
 #+end_src
 
+* Pain Point: Testing is a lot of work!
+
+  - there to find mistakes that a compiler could often find
+    + null checks
+    + untested paths
+  - side effects, mocking, are so much work or so much magic!
+
+#+begin_src java
+  public class MyHandlerTest {
+      privateMyHandler handler;
+
+      @Test
+      public void doesNotAlwaysFail() {
+          assertNotNull(handler.handle(new MockHttpServletRequest));
+      }
+
+      @Test
+      public void stillDoesNotAlwaysFail() {
+          assertEquals(handler.handle(new MockHttpServletRequest()));
+      }
+
+      // How many of these do we write until we are satisfied?
+  }
+#+end_src
+
+* Functional Approach
+
+** Pure Functions
+
+** Static types and compilers
+
+   - (Really great, but not available everywhere)
+
+** Generative testing (like fuzz testing)
+
+#+begin_src haskell
+  describe "my widget" $ do
+   it "always gives you a soda when you push the red button" $ do
+     -- Generative testing gets you closer to for all than most
+     forAll redButtons (\button -> pushButton button == Soda)
+#+end_src
 
 * If you are interested!
 
-  - Professor Frisby's Mostly Adequate Guide
-      to Functional Programming
-  - Haskell from First Principles
-  - Functional Programming through Lambda Calculus
+  - [[https://www.gitbook.com/book/drboolean/mostly-adequate-guide/details][Professor Frisbys Mostly Adequate Guide to Functional Programming]]
+  - [[haskellbook.com][Haskell from First Principles]]
+  - [[https://www.youtube.com/watch?v=E8I19uA-wGY][Functional Design Patterns]]
 
 ** Come to the Orange Combinator!
     We would love to have you!
