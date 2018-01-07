@@ -3,7 +3,7 @@
 * About Me:
 
   - John Soo
-  - Developer, American Airlines Team
+  - Developer, Team Vicaarious
   - Your local functional programming enthusiast
 
 * Why is software harder to produce when there is more of it?
@@ -12,16 +12,16 @@
 
    1. Communication:
       - Code's capacity to express the intent of the programmer to other humans
-        + In other words: Readability, Expressiveness, Intent
+        + In other words, you might say: Readability, Expressiveness, Intent
 
    2. Correctness:
       - Code's capacity to do what is specified and not break
 
-* Testing
+* Correctness is not guaranteed by testing
 
 ** Purpose of testing is to verify correctness
 
-** Problem: it is horribly ineffective
+** Problem: testing is not exhaustively correct
 
 ** Correct software works for all inputs
 
@@ -33,27 +33,14 @@
        + (like exceptions, invalid input, timeouts, etc)
        + Even with branch coverage, input coverage is not guaranteed
 
-* Communication is impeded by indirection
+* Communication is impeded by needless indirection
 
 ** Code tells other developers what the computer ought to do.
 
    - More code = more to understand
    - More relevant code in more places = more to store in the reader's head
    - Correctness is also reduced by poor communication
-
-* Enemies of correctness and communication
-
-  - Unpredictable state mutation
-  - Verbosity
-  - Leaky abstractions
-
-** The goals:
-
-*** reduce verbosity
-
-*** control state
-
-*** provide well defined abstractions
+     + Code must be understood to be made correct
 
 * What if I told you that you could have all this for free?
 
@@ -61,11 +48,12 @@
 
 * So what is functional programming?
 
-** Core principles:
+** (Some) Core principles:
 
    - Evaluation of expressions instead of executing statements
    - Preferring pure functions - given the same input - will always return the same output
-   - Emphasizing immutability and over mutating state
+   - Emphasizing immutability over mutating state
+   - Programming as statements of truths that cannot change
    - Of course, first class functions - functions are values
 
      Most functional programs boil down to:
@@ -102,7 +90,7 @@
           return result;
       }
 
-      // Everything is an expression!
+      // Expressions and statements of truth
       function declarativeFactorial(n) {
           if (n >= 1) {
               return 1;
@@ -155,7 +143,7 @@
 * There is a lot to functional programming
 
 ** I urge you to learn more at your local meetup
-   (7-9 every monday!)
+   (Orange Combinator meets 7-9pm every monday!)
 
 * But John!
 
@@ -169,7 +157,7 @@
     + leads to unnecessary cognitive load
   - refactoring can lead to breakage
     + sometimes this means that refactoring never happens
-    + this leads to the WTF moments we experience frequently
+    + this leads to the WTF moments we experience
 
     #+begin_src java
       // If I want to refactor the AccountManager I have to understand what the
@@ -195,30 +183,34 @@
 * Functional Approach: Strong types and immutability
 
   - With functional type systems, easily communicate (all) of the states you need
-  - Immutability means there will not be a nullary, void function
+  - Immutability means nullary, void functions necessarily perform side effects
 
     #+begin_src haskell
-        newtype Level = Int
+      newtype Level = Int
+
+      -- Creating a new kind of Message will result in
+      -- compiler errors or warnings
+      data Message = Set Level | Reset
 
 
-        -- Creating a new kind of Message will result in
-        -- compiler errors or warnings
-        data Message = Set Level | Reset
+      setLevel :: Message -> Level -> Level
+      setLevel message level = case message of
+        Reset        -> 1
 
+        Set newLevel -> case level of
+          0 -> 1
 
-        setLevel :: Message -> Level -> Level
-        setLevel message level = case message of
-          Reset        -> 1
+          _ -> newLevel + 30
 
-          Set newLevel -> case level of
-            0 -> 1
-
-            _ -> newLevel + 30
+      -- Main returns Unit and takes no arguments.
+      -- Side effects are communicated precisely
+      main :: IO ()
+      main = putStrLn "Hello World"
     #+end_src
 
 * Pain Point: Procedural and OO code is verbose
 
-** Each line of code is a liability!
+** And each line of code is a liability!
 
   - How many times have you done the following this week? month? lifetime?
   - Creating a whole new class or object simply to pass behavior around
@@ -250,7 +242,7 @@
 
 ** First class functions
 
-** Well founded abstraction
+** Mathematically founded abstraction
 
 ** Syntax sugar
 
@@ -259,10 +251,13 @@
   - behavior needed at call site is defined at call site
 
 #+begin_src js
-  const myRoute = ({ body: { myForm } }) =>
-      validate(myForm)
-         .map(_ => "excellent form, sir!")
-         .fold(response => response, "poor form, old chap")
+    // Map and maybe (for example) are well known abstractions.
+    // They can be used without understanding implementation.
+    // Note they can apply to arrays, hashmaps, futures, streams, tuples, etc.
+    const niceForm = ({ body: { myForm } }) =>
+        validate(myForm)
+           .map(_ => "excellent form, sir!")
+           .maybe("poor form, old chap", response => response)
 #+end_src
 
 * Pain Point: Testing is a lot of work!
@@ -278,15 +273,32 @@
 
       @Test
       public void doesNotAlwaysFail() {
-          assertNotNull(handler.handle(new MockHttpServletRequest));
+          assertNotNull(handler.handle(new MockHttpServletRequest()));
       }
 
       @Test
       public void stillDoesNotAlwaysFail() {
-          assertEquals(handler.handle(new MockHttpServletRequest()));
+          assertEquals(
+                handler.handle(new MockHttpServletRequest()).getStatusCode(),
+                200
+          );
+      }
+
+      @Test
+      public void maybeNeedToMockAClassAndHopeItStillPasses() {
+          Validator validator = mock(Validator.class);
+          expect(validator.validate("junk in the form"))
+              .andReturn("poor form, old chap");
+          Handler testObj = new Handler(validator);
+
+          HttpResponse res = testObj.handle(new Form("junk in the form"));
+
+          // Whew, I'm tired!
+          assertEquals(400, res.getStatusCode());
       }
 
       // How many of these do we write until we are satisfied?
+      // I'm already tired!
   }
 #+end_src
 
@@ -300,12 +312,43 @@
 
 ** Generative testing (like fuzz testing)
 
+** Dependent types and formal verification
+
+   - (Even better than testing but still not quite production ready)
+
+#+begin_src js
+  describe("this function is pure so it always returns the same value for the same input", () => {
+      expect(niceForm("junk form")).equalTo("poor form, old chap!")
+  })
+#+end_src
+
 #+begin_src haskell
   describe "my widget" $ do
    it "always gives you a soda when you push the red button" $ do
-     -- Generative testing gets you closer to for all than most
+     -- Generative testing gets you closer to `for all` than most
      forAll redButtons (\button -> pushButton button == Soda)
 #+end_src
+
+#+begin_src idris
+  -- Formal verification via dependent types is coming!
+  -- Really is for all x, y!
+  my_functhion_injective : func x = func y -> x = y
+  my_function_injective prf = ...
+#+end_src
+
+* What can we do today?
+
+** In any setting
+
+*** Prefer immutability
+
+*** Prefer pure functions
+
+** In Java specifically
+
+*** Compose with classes (in Java 7)
+
+*** Move to Java 8!
 
 * If you are interested!
 
@@ -313,5 +356,5 @@
   - [[http://haskellbook.com/][Haskell Programming from First Principles]]
   - [[https://www.youtube.com/watch?v=E8I19uA-wGY][Functional Design Patterns]]
 
-** Come to the Orange Combinator!
+** Come to the Orange Combinator (The next Monday you are in Southern California)!
     We would love to have you!
