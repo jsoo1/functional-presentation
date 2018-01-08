@@ -74,7 +74,7 @@
     you define and (often) let the computer implement the solution
   - No sense of time or order
 
-    #+begin_src js
+#+begin_src js
       // Like a recipe
       function imperativeFactorial(n) {
           var result = 1;
@@ -98,12 +98,13 @@
               return n * declarativeFactorial(n - 1);
           }
       }
-    #+end_src
+#+end_src
 
 * Immutability
 
   - No name (variable) shall ever mean two different things
-  - Again, no sense of time or order
+  - No sense of time or order
+  - Structural equality, not reference equality
 
 #+begin_src haskell
   x = 5
@@ -119,7 +120,6 @@
   -- We can pass around db's, accounts, anything
   updateAccount database account newInfo = update database account newInfo
 #+end_src
-
 
 * First Class Functions
 
@@ -332,8 +332,8 @@
 #+begin_src idris
   -- Formal verification via dependent types is coming!
   -- Really is for all x, y!
-  my_functhion_injective : func x = func y -> x = y
-  my_function_injective prf = ...
+  my_function_injective : func x = func y -> x = y
+  my_function_injective fx_eq_fy = ...
 #+end_src
 
 * What can we do today?
@@ -344,6 +344,12 @@
 
 *** Prefer pure functions
 
+*** Discipline in the small buys freedom in the large
+    
+    - I.E.
+      + Pure functions get modularity for free
+      + Immutability means never worrying about state
+    
 ** In Java specifically
 
 *** Compose with classes (in Java 7)
